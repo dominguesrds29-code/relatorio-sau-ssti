@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAU-STI | Dashboard de Atendimentos</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Iconsax or FontAwesome icons via FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="animate-fade-in">
+
+    <div class="dashboard-container">
+        
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>Painel de Atendimentos SAU-STI</h1>
+                <p>Análise exploratória e monitoramento de chamados técnicos</p>
+            </div>
+            <div class="header-actions">
+                <span id="current-date" style="color: var(--text-secondary); font-weight: 500;"></span>
+            </div>
+        </header>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+            <div class="glass-card kpi-card blue">
+                <div class="kpi-icon"><i class="fa-solid fa-ticket text-blue-500"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-value" id="kpi-total-tickets">-</span>
+                    <span class="kpi-label">Total Chamados</span>
+                </div>
+            </div>
+            <div class="glass-card kpi-card green">
+                <div class="kpi-icon"><i class="fa-solid fa-circle-check text-green-500"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-value" id="kpi-resolved-tickets">-</span>
+                    <span class="kpi-label">Resolvidos</span>
+                </div>
+            </div>
+            <div class="glass-card kpi-card teal">
+                <div class="kpi-icon"><i class="fa-solid fa-clock text-teal-500"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-value" id="kpi-avg-time">-</span>
+                    <span class="kpi-label">Tempo Médio Resolução</span>
+                </div>
+            </div>
+            <div class="glass-card kpi-card purple">
+                <div class="kpi-icon"><i class="fa-solid fa-spinner text-purple-500"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-value" id="kpi-pending-tickets">-</span>
+                    <span class="kpi-label">Pendentes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section with Time Period Filter -->
+        <div class="glass-card filters-section">
+            <div class="filters-header">
+                <div class="filters-header-title">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Filtros do Painel</span>
+                </div>
+                <div class="period-summary-badge" id="period-summary-badge">
+                    <i class="fa-regular fa-calendar-check"></i>
+                    <span id="period-summary-text">Todo o período (333 chamados)</span>
+                </div>
+            </div>
+
+            <!-- Row 1: Search & Period Time Filters -->
+            <div class="filters-row">
+                <div class="filter-group search">
+                    <label for="search-input"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar</label>
+                    <input type="text" id="search-input" class="filter-input" placeholder="Buscar por solicitante, e-mail, descrição...">
+                </div>
+                <div class="filter-group period-preset-group">
+                    <label for="filter-periodo"><i class="fa-solid fa-clock-rotate-left"></i> Período</label>
+                    <select id="filter-periodo" class="filter-input">
+                        <option value="all">Todo o período</option>
+                        <option value="30days">Últimos 30 dias</option>
+                        <option value="90days">Últimos 90 dias</option>
+                        <option value="180days">Últimos 6 meses</option>
+                        <option value="2026">Ano 2026</option>
+                        <option value="2025">Ano 2025</option>
+                        <option value="2024">Ano 2024</option>
+                        <option value="custom">Personalizado...</option>
+                    </select>
+                </div>
+                <div class="filter-group date-field">
+                    <label for="filter-date-start"><i class="fa-regular fa-calendar-days"></i> Data Inicial</label>
+                    <input type="date" id="filter-date-start" class="filter-input date-input" title="Data inicial de abertura">
+                </div>
+                <div class="filter-group date-field">
+                    <label for="filter-date-end"><i class="fa-regular fa-calendar-days"></i> Data Final</label>
+                    <input type="date" id="filter-date-end" class="filter-input date-input" title="Data final de abertura">
+                </div>
+            </div>
+
+            <!-- Quick Period Pills -->
+            <div class="quick-period-bar">
+                <span class="quick-period-label"><i class="fa-solid fa-bolt"></i> Atalhos:</span>
+                <div class="quick-period-pills" id="quick-period-pills">
+                    <button type="button" class="preset-pill active" data-period="all">Todos</button>
+                    <button type="button" class="preset-pill" data-period="30days">Últimos 30 dias</button>
+                    <button type="button" class="preset-pill" data-period="90days">Últimos 90 dias</button>
+                    <button type="button" class="preset-pill" data-period="2026">2026</button>
+                    <button type="button" class="preset-pill" data-period="2025">2025</button>
+                    <button type="button" class="preset-pill" data-period="2024">2024</button>
+                </div>
+            </div>
+
+            <!-- Row 2: Secondary Attributes (Category, Solver, Status and Actions) -->
+            <div class="filters-row secondary-row">
+                <div class="filter-group">
+                    <label for="filter-objeto"><i class="fa-solid fa-layer-group"></i> Categoria (Objeto)</label>
+                    <select id="filter-objeto" class="filter-input">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-solucionador"><i class="fa-solid fa-user-gear"></i> Solucionador</label>
+                    <select id="filter-solucionador" class="filter-input">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-status"><i class="fa-solid fa-circle-check"></i> Status</label>
+                    <select id="filter-status" class="filter-input">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button id="clear-filters" class="clear-btn" title="Limpar todos os filtros">
+                        <i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <div class="glass-card chart-card">
+                <h3 class="chart-title">Distribuição por Categoria</h3>
+                <div class="chart-container">
+                    <canvas id="chart-objeto"></canvas>
+                </div>
+            </div>
+            <div class="glass-card chart-card">
+                <h3 class="chart-title" id="chart-timeline-title">Chamados Criados ao Longo do Tempo</h3>
+                <div class="chart-container">
+                    <canvas id="chart-timeline"></canvas>
+                </div>
+            </div>
+            <div class="glass-card chart-card">
+                <h3 class="chart-title">Top Solucionadores</h3>
+                <div class="chart-container">
+                    <canvas id="chart-solucionador"></canvas>
+                </div>
+            </div>
+            <div class="glass-card chart-card">
+                <h3 class="chart-title">Situação dos Chamados</h3>
+                <div class="chart-container">
+                    <canvas id="chart-status"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table Section -->
+        <div class="glass-card table-section">
+            <div class="table-header">
+                <h3>Lista de Chamados</h3>
+                <div class="pagination-info" id="pagination-info">Mostrando 0-0 de 0 chamados</div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Abertura</th>
+                            <th>Categoria (Objeto)</th>
+                            <th>Solicitante</th>
+                            <th>Solucionador</th>
+                            <th>Status</th>
+                            <th>Tempo (Dias)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table-body">
+                        <!-- Dynamic rows here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button id="prev-page" class="page-btn" disabled><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                <div class="pagination-controls" id="page-numbers"></div>
+                <button id="next-page" class="page-btn" disabled>Próximo <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Ticket Detail Drawer Overlay -->
+    <div class="modal-overlay" id="ticket-modal">
+        <div class="drawer">
+            <div class="drawer-header">
+                <h2 id="modal-ticket-id">Chamado #------</h2>
+                <button class="drawer-close" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="detail-section">
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <div><span class="badge" id="modal-status">-</span></div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Categoria</span>
+                    <span class="detail-value" id="modal-objeto">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Solicitante</span>
+                    <span class="detail-value" id="modal-solicitante">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Solucionador</span>
+                    <span class="detail-value" id="modal-solucionador">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Contatos</span>
+                    <span class="detail-value" id="modal-contato">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Datas (Abertura / Modificação)</span>
+                    <span class="detail-value" id="modal-datas">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tempo de Solução</span>
+                    <span class="detail-value" id="modal-tempo">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Descrição do Problema</span>
+                    <span class="detail-value desc" id="modal-desc">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
